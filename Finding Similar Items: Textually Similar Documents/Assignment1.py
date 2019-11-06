@@ -4,7 +4,7 @@ import binascii
 import random
 import numpy as np
 
-#Splitting the data file in smaller txt files, each one containing one review
+#Splitting the data file in smaller txt files, each one containing one review.
 def CreatingTextFiles(file):
     with open (file) as f:
         counter=1
@@ -16,7 +16,7 @@ def CreatingTextFiles(file):
                 counter+=1
         f.close()
 
-#Reading the content of the txt documents
+#Reading the content of the txt documents.
 def ReadingFiles():
     files = {}
     for filename in os.listdir():
@@ -25,7 +25,7 @@ def ReadingFiles():
                 files[filename] = file.read()
     return files
 
-#Splitting the docs in list of words and assigning an integer as the key for the document
+#Splitting the docs in list of words and assigning an integer as the key for the document.
 def Splitting(files):
     docs = {}
     i = 0
@@ -37,7 +37,7 @@ def Splitting(files):
         i = i + 1
     return docs
 
-#Creating shingles from the documents of length k, hashing them to integers and return a dictionary of hashed shingles
+#Creating shingles from the documents of length k, hashing them to integers and return a dictionary of hashed shingles.
 def Shingling(k, documents):
 
     docsAsHashedShingles = {}
@@ -70,11 +70,35 @@ def Shingling(k, documents):
 
     return docsAsHashedShingles
 
-#Three arguments, two sets of shingles and the universal set, Computes the jaccard_similarity of the two sets
+#Three arguments, two sets of shingles and the universal set, computes the jaccard_similarity of the two sets.
 def CompareSets(shingle1, shingle2, universal_set):
     intersection = shingle1.intersection(shingle2)
     jaccard_similarity = len(intersection) / len(universal_set)
     return jaccard_similarity
+
+#Three arguments, two sets of shingles and the universal set, constructs the characteristic matrix using numpy.
+def CharMatrix(shingle1, shingle2, universal_set):
+    column1 = []
+    column2 = []
+
+    for i in universal_set:
+
+        if i in shingle1 and i in shingle2:
+            column1.append(1)
+            column2.append(1)
+        elif i in shingle1:
+            column1.append(1)
+            column2.append(0)
+        elif i in shingle2:
+            column1.append(0)
+            column2.append(1)
+        else:
+            column1.append(0)
+            column2.append(0)
+
+
+    charmatrix = np.column_stack((column1, column2))
+    return charmatrix
 
 
 data_file = 'interior_toyota_camry_2007.data'
@@ -120,9 +144,18 @@ doc1 = shingles[var1]
 doc2 = shingles[var2]
 universal_set = doc1.union(doc2)
 
+
+
+
+
 print(CompareSets(doc1, doc2, universal_set))
 
+print(CharMatrix(doc1, doc2, universal_set))
 
+
+#============================================================#
+#                   MINHASHING
+#============================================================#
 maxID = len(shingles)
 c = 113
 
@@ -153,7 +186,7 @@ def signatureCreation(shingles, a, b, k, c):
     for docID, shingle in shingles.items():
         signature = []
 
-        for i in range(0, 100):
+        for i in range(0, k):
 
             for s in shingle:
                 hash = (a[i] * s + b[i]) % c #Hash function formula given in the course
@@ -164,5 +197,6 @@ def signatureCreation(shingles, a, b, k, c):
 
     return signatures
 
+signatures = signatureCreation(shingles, a, b, 100, c)
 print(signatureCreation(shingles, a, b, 100, c)[1])
 print("Minimum signature is: " + str(min(signatureCreation(shingles, a, b, 100, c)[1])))
