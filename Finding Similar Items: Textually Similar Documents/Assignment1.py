@@ -32,23 +32,22 @@ def Splitting(files):
     for key,value in files.items():
         lowerVal = value.lower().replace('\n', '')
         readyString = lowerVal.translate(str.maketrans('', '', string.punctuation)) # To remove the punctuation from the string
-        split = readyString.split()
-        docs[i] = split
+        underVal = readyString.replace(' ', '_') # replacing space with _ to better distinguish shingles in the character level
+#        split = readyString.split()
+        docs[i] = underVal
         i = i + 1
     return docs
 
 #Creating shingles from the documents of length k, hashing them to integers and return a dictionary of hashed shingles.
 def Shingling(k, documents):
 
-    docsAsHashedShingles = {}
+    hashedShingles = {}
 
     for i in range(0, len(documents)):
 
         words = documents[i]
 
-        shinglesInDocWords = set()
-
-        shinglesInDocInts = set()
+        intShingles = set()
 
         shingle = []
 
@@ -56,19 +55,14 @@ def Shingling(k, documents):
 
             shingle = words[j:j + k]
 
-            shingle = ' '.join(shingle)
+            hashedShingle = binascii.crc32(shingle.encode()) & 0xffffffff
 
-            crc = binascii.crc32(shingle.encode()) & 0xffffffff
+            if hashedShingle not in intShingles:
+               intShingles.add(hashedShingle)
 
-            if shingle not in shinglesInDocWords:
-                shinglesInDocWords.add(shingle)
+        hashedShingles[i] = intShingles
 
-            if crc not in shinglesInDocInts:
-                shinglesInDocInts.add(crc)
-
-        docsAsHashedShingles[i] = shinglesInDocInts
-
-    return docsAsHashedShingles
+    return hashedShingles
 
 #Three arguments, two sets of shingles and the universal set, computes the jaccard_similarity of the two sets.
 def CompareSets(shingle1, shingle2, universal_set):
@@ -121,6 +115,10 @@ while True: # Size of shingles
 shingles = Shingling(k, docs) # dictionary of (docID, shingle)
 
 
+# for k, v in shingles.items():
+#     print(v)
+
+
 message1 = "Enter a number between 1 and " + format(len(shingles)) + " for the first document: "
 message2 = "Enter a number between 1 and " + format(len(shingles)) + " for the second document: "
 
@@ -143,9 +141,6 @@ while True:
 doc1 = shingles[var1]
 doc2 = shingles[var2]
 universal_set = doc1.union(doc2)
-
-
-
 
 
 print(CompareSets(doc1, doc2, universal_set))
